@@ -18,6 +18,7 @@ function makeCapsule(overrides: Partial<CapsuleResponse> = {}): CapsuleResponse 
     media_urls: [],
     transcriptions: [],
     unlock_date: "2030-06-15T12:00:00Z",
+    timezone: "UTC",
     status: "locked",
     is_public: false,
     created_at: "2024-01-01T00:00:00Z",

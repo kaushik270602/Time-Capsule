@@ -12,8 +12,8 @@ class MediaService:
     """Handles media file upload, validation, and retrieval"""
     
     # File size limits in bytes
-    VIDEO_MAX_SIZE = 500 * 1024 * 1024  # 500MB
-    AUDIO_MAX_SIZE = 100 * 1024 * 1024  # 100MB
+    VIDEO_MAX_SIZE = 25 * 1024 * 1024   # 25MB (Whisper API limit)
+    AUDIO_MAX_SIZE = 25 * 1024 * 1024   # 25MB (Whisper API limit)
     IMAGE_MAX_SIZE = 10 * 1024 * 1024   # 10MB
     
     # Supported formats
@@ -50,13 +50,13 @@ class MediaService:
             if content_type not in self.VIDEO_FORMATS:
                 raise InvalidFileError(f"Unsupported video format: {content_type}")
             if file_size > self.VIDEO_MAX_SIZE:
-                raise InvalidFileError(f"Video file too large: {file_size} bytes (max {self.VIDEO_MAX_SIZE})")
+                raise InvalidFileError(f"Video file too large ({file_size // (1024*1024)}MB). Max 25MB for AI transcription.")
                 
         elif media_type == 'audio':
             if content_type not in self.AUDIO_FORMATS:
                 raise InvalidFileError(f"Unsupported audio format: {content_type}")
             if file_size > self.AUDIO_MAX_SIZE:
-                raise InvalidFileError(f"Audio file too large: {file_size} bytes (max {self.AUDIO_MAX_SIZE})")
+                raise InvalidFileError(f"Audio file too large ({file_size // (1024*1024)}MB). Max 25MB for AI transcription.")
                 
         elif media_type == 'image':
             if content_type not in self.IMAGE_FORMATS:

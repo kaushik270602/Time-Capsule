@@ -52,8 +52,16 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        from app.config import settings
+
         method = request.method.upper()
         path = request.url.path
+
+        # Disable CSRF protection in debug/development mode
+        if settings.DEBUG:
+            response = await call_next(request)
+            self._ensure_csrf_cookie(request, response)
+            return response
 
         # Always let safe methods and exempt paths through
         if method in SAFE_METHODS or path in EXEMPT_PATHS:

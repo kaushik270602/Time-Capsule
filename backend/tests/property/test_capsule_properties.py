@@ -125,7 +125,7 @@ def test_property_11_privacy_defaults_to_private(user_id, title, unlock_date):
         capsule_service = CapsuleService(db_session)
         
         # Create capsule without specifying is_public (should default to False)
-        capsule = capsule_service.create_capsule(
+        capsule, _ = capsule_service.create_capsule(
             user_id=user.id,
             title=title,
             text_content="Some content",
@@ -213,7 +213,7 @@ def test_property_13_unlock_dates_stored_in_utc(user_id, title, unlock_date):
         capsule_service = CapsuleService(db_session)
         
         # Create capsule with unlock_date
-        capsule = capsule_service.create_capsule(
+        capsule, _ = capsule_service.create_capsule(
             user_id=user.id,
             title=title,
             text_content="Some content",
@@ -268,7 +268,7 @@ def test_property_14_new_capsules_are_locked(user_id, title, unlock_date, is_pub
         capsule_service = CapsuleService(db_session)
         
         # Create capsule
-        capsule = capsule_service.create_capsule(
+        capsule, _ = capsule_service.create_capsule(
             user_id=user.id,
             title=title,
             text_content="Some content",
@@ -315,7 +315,7 @@ def test_property_19_public_capsules_hidden_when_locked(user_id, title, unlock_d
         capsule_service = CapsuleService(db_session)
         
         # Create a public locked capsule
-        capsule = capsule_service.create_capsule(
+        capsule, _ = capsule_service.create_capsule(
             user_id=user.id,
             title=title,
             text_content="Some content",
@@ -458,7 +458,7 @@ def test_property_21_locked_capsule_privacy_immutable(user_id, title, unlock_dat
         capsule_service = CapsuleService(db_session)
         
         # Create a locked capsule with initial privacy setting
-        capsule = capsule_service.create_capsule(
+        capsule, _ = capsule_service.create_capsule(
             user_id=user.id,
             title=title,
             text_content="Some content",

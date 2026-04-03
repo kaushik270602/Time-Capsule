@@ -4,8 +4,8 @@ import React, { useRef, useState, useCallback } from "react";
 
 // Validation limits matching backend
 const LIMITS: Record<string, { maxSize: number; formats: string[] }> = {
-  video: { maxSize: 500 * 1024 * 1024, formats: ["video/mp4", "video/quicktime", "video/x-msvideo"] },
-  audio: { maxSize: 100 * 1024 * 1024, formats: ["audio/mpeg", "audio/wav", "audio/x-m4a", "audio/mp4"] },
+  video: { maxSize: 25 * 1024 * 1024, formats: ["video/mp4", "video/quicktime", "video/x-msvideo"] },
+  audio: { maxSize: 25 * 1024 * 1024, formats: ["audio/mpeg", "audio/wav", "audio/x-m4a", "audio/mp4"] },
   image: { maxSize: 10 * 1024 * 1024, formats: ["image/jpeg", "image/png", "image/gif"] },
 };
 
@@ -100,7 +100,7 @@ export default function MediaUploader({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-sm font-medium text-stone-700">
         {LABELS[mediaType]} {multiple ? `(max ${maxFiles})` : ""}
       </label>
 
@@ -111,8 +111,8 @@ export default function MediaUploader({
         aria-label={`Upload ${LABELS[mediaType]}`}
         className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
           dragOver
-            ? "border-indigo-500 bg-indigo-50"
-            : "border-gray-300 hover:border-indigo-400"
+            ? "border-amber-500 bg-amber-50"
+            : "border-stone-300 hover:border-amber-400"
         }`}
         onClick={() => inputRef.current?.click()}
         onKeyDown={(e) => {
@@ -125,12 +125,12 @@ export default function MediaUploader({
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
       >
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-stone-500">
           Drag & drop or click to select {LABELS[mediaType].toLowerCase()} files
         </p>
-        <p className="text-xs text-gray-400 mt-1">
-          Formats: {ACCEPT_MAP[mediaType]} &middot; Max:{" "}
-          {formatSize(LIMITS[mediaType].maxSize)}
+        <p className="text-xs text-stone-400 mt-1">
+          Formats: {ACCEPT_MAP[mediaType]} &middot; Max: {formatSize(LIMITS[mediaType].maxSize)}
+          {mediaType !== "image" && " (for AI transcription)"}
         </p>
       </div>
 
@@ -152,7 +152,7 @@ export default function MediaUploader({
           {files.map((pf, idx) => (
             <li
               key={`${pf.file.name}-${idx}`}
-              className="flex items-center gap-3 bg-gray-50 rounded-lg p-2"
+              className="flex items-center gap-3 bg-stone-50 rounded-lg p-2"
             >
               {pf.preview && (
                 <img
@@ -163,7 +163,7 @@ export default function MediaUploader({
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm truncate">{pf.file.name}</p>
-                <p className="text-xs text-gray-400">{formatSize(pf.file.size)}</p>
+                <p className="text-xs text-stone-400">{formatSize(pf.file.size)}</p>
                 {pf.error && (
                   <p className="text-xs text-red-600" role="alert">
                     {pf.error}
@@ -173,7 +173,7 @@ export default function MediaUploader({
               <button
                 type="button"
                 aria-label={`Remove ${pf.file.name}`}
-                className="text-gray-400 hover:text-red-500 text-lg"
+                className="text-stone-400 hover:text-red-500 text-lg"
                 onClick={() => removeFile(idx)}
               >
                 &times;

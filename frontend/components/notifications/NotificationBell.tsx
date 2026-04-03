@@ -60,7 +60,7 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="relative p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+        className="relative p-2 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
         aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
         aria-expanded={open}
         aria-haspopup="true"
@@ -81,7 +81,7 @@ export default function NotificationBell() {
           />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+          <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -89,16 +89,16 @@ export default function NotificationBell() {
 
       {open && (
         <div
-          className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+          className="absolute right-0 lg:left-0 lg:right-auto mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-lg border border-stone-200 z-50"
           role="menu"
           aria-label="Notifications"
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-stone-100">
+            <h3 className="text-sm font-semibold text-stone-900">
               Notifications
             </h3>
             {unreadCount > 0 && (
-              <span className="text-xs text-indigo-600 font-medium">
+              <span className="text-xs text-amber-600 font-medium">
                 {unreadCount} unread
               </span>
             )}
@@ -106,11 +106,11 @@ export default function NotificationBell() {
 
           <div className="max-h-72 overflow-y-auto">
             {loading ? (
-              <div className="px-4 py-6 text-center text-sm text-gray-400">
+              <div className="px-4 py-6 text-center text-sm text-stone-400">
                 Loading…
               </div>
             ) : recent.length === 0 ? (
-              <div className="px-4 py-6 text-center text-sm text-gray-400">
+              <div className="px-4 py-6 text-center text-sm text-stone-400">
                 No notifications yet
               </div>
             ) : (
@@ -119,20 +119,22 @@ export default function NotificationBell() {
                   <li key={n.id}>
                     <button
                       onClick={() => handleMarkRead(n.id)}
-                      className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 ${
+                      className={`w-full text-left px-4 py-3 hover:bg-stone-50 transition-colors border-b border-stone-50 ${
                         n.is_read ? "opacity-60" : ""
                       }`}
                       role="menuitem"
                     >
-                      <div className="flex items-start gap-2">
-                        {!n.is_read && (
-                          <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-indigo-500" />
-                        )}
-                        <div className={!n.is_read ? "" : "ml-4"}>
-                          <p className="text-sm text-gray-800 line-clamp-2">
+                      <div className="flex items-start gap-3">
+                        <span
+                          className={`mt-1.5 h-2 w-2 flex-shrink-0 rounded-full ${
+                            n.is_read ? "bg-transparent" : "bg-amber-500"
+                          }`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-stone-800 line-clamp-2 break-words">
                             {n.message}
                           </p>
-                          <p className="mt-1 text-xs text-gray-400">
+                          <p className="mt-1 text-xs text-stone-400">
                             {new Date(n.created_at).toLocaleDateString()}
                           </p>
                         </div>
@@ -144,10 +146,10 @@ export default function NotificationBell() {
             )}
           </div>
 
-          <div className="border-t border-gray-100 px-4 py-2">
+          <div className="border-t border-stone-100 px-4 py-2">
             <Link
               href="/notifications"
-              className="block text-center text-sm text-indigo-600 hover:text-indigo-800 font-medium py-1"
+              className="block text-center text-sm text-amber-600 hover:text-amber-700 font-medium py-1"
               onClick={() => setOpen(false)}
             >
               View all notifications

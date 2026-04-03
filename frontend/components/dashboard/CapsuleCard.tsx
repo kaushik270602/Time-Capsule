@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { CapsuleResponse } from "@/lib/api";
+import { formatUnlockDate } from "@/lib/timezone";
 
 interface CapsuleCardProps {
   capsule: CapsuleResponse;
@@ -59,11 +60,11 @@ export default function CapsuleCard({ capsule }: CapsuleCardProps) {
             {isLocked ? "🔒" : "🔓"}
           </span>
           <div className="min-w-0">
-            <p className="font-medium text-gray-900 truncate">{capsule.title}</p>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="font-medium text-stone-900 truncate">{capsule.title}</p>
+            <p className="text-xs text-stone-500 mt-0.5">
               {isLocked
-                ? `Unlocks ${new Date(capsule.unlock_date).toLocaleDateString()}`
-                : `Unlocked ${new Date(capsule.unlock_date).toLocaleDateString()}`}
+                ? `Unlocks ${formatUnlockDate(capsule.unlock_date, capsule.timezone || 'UTC')}`
+                : `Unlocked ${formatUnlockDate(capsule.unlock_date, capsule.timezone || 'UTC')}`}
             </p>
           </div>
         </div>
@@ -74,7 +75,7 @@ export default function CapsuleCard({ capsule }: CapsuleCardProps) {
               Public
             </span>
           ) : (
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-stone-100 text-stone-600">
               Private
             </span>
           )}

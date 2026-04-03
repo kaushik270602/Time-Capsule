@@ -52,11 +52,31 @@ export interface CapsuleCreateRequest {
   title: string;
   text_content?: string;
   unlock_date: string; // ISO 8601
+  timezone?: string; // IANA timezone identifier
   is_public: boolean;
+}
+
+export interface ImageAnalysis {
+  media_url: string;
+  caption: string;
+  tags: string[];
+}
+
+export interface VideoSummary {
+  media_url: string;
+  transcription: string;
+  summary: string;
 }
 
 export interface AIAnalysisResponse {
   summary: string | null;
+  sentiment_label: string | null;
+  sentiment_confidence: number | null;
+  tone_description: string | null;
+  image_analyses: ImageAnalysis[] | null;
+  video_summaries: VideoSummary[] | null;
+  recap_text: string | null;
+  processing_status: string;
   created_at: string;
 }
 
@@ -67,17 +87,24 @@ export interface CapsuleResponse {
   media_urls: string[];
   transcriptions: string[];
   unlock_date: string;
+  timezone: string; // IANA timezone identifier
   status: string;
   is_public: boolean;
   created_at: string;
   time_until_unlock: number | null;
   user_id: number | null;
   ai_analysis?: AIAnalysisResponse | null;
+  unlock_date_local?: string; // Formatted in stored timezone
 }
 
 export interface MediaUploadResponse {
   url: string;
   message: string;
+}
+
+export interface CapsuleListResponse {
+  capsules: CapsuleResponse[];
+  total: number;
 }
 
 // --- Public feed types ---
@@ -87,6 +114,8 @@ export interface PublicCapsuleResponse {
   title: string;
   text_content: string | null;
   unlock_date: string;
+  timezone: string; // IANA timezone identifier
+  unlock_date_local?: string; // Formatted in stored timezone
   created_at: string;
   user_id: number;
 }
@@ -103,7 +132,7 @@ export const capsuleApi = {
   get: (id: number) =>
     api.get<CapsuleResponse>(`/api/capsules/${id}`),
 
-  list: () => api.get<CapsuleResponse[]>("/api/capsules"),
+  list: () => api.get<CapsuleListResponse>("/api/capsules"),
 
   uploadMedia: (
     capsuleId: number,
@@ -130,6 +159,9 @@ export const capsuleApi = {
     api.get<PublicFeedResponse>("/api/public/capsules", {
       params: { limit, offset },
     }),
+
+  triggerAnalysis: (capsuleId: number) =>
+    api.post(`/api/capsules/${capsuleId}/analyze`),
 };
 
 // --- Notification types ---

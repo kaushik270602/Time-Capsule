@@ -24,8 +24,29 @@ export default function FilterBar({
   onSearchChange,
 }: FilterBarProps) {
   return (
-    <div className="flex flex-col sm:flex-row gap-3">
-      <div className="relative flex-1">
+    <div className="flex flex-col gap-3">
+      {/* Segmented filter buttons */}
+      <div className="flex rounded-lg border border-stone-300 bg-white overflow-hidden" role="radiogroup" aria-label="Filter by status">
+        {STATUS_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            role="radio"
+            aria-checked={statusFilter === opt.value}
+            onClick={() => onStatusChange(opt.value)}
+            className={`flex-1 py-2 px-3 text-sm font-medium transition-colors ${
+              statusFilter === opt.value
+                ? "bg-amber-500 text-white"
+                : "text-stone-600 hover:bg-stone-50"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Search input */}
+      <div className="relative">
         <label htmlFor="capsule-search" className="sr-only">
           Search capsules
         </label>
@@ -35,10 +56,10 @@ export default function FilterBar({
           placeholder="Search by title or content…"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="w-full rounded-lg border border-stone-300 bg-white py-2 pl-10 pr-3 text-sm text-stone-900 placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
         />
         <svg
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -52,24 +73,6 @@ export default function FilterBar({
             d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
           />
         </svg>
-      </div>
-
-      <div>
-        <label htmlFor="status-filter" className="sr-only">
-          Filter by status
-        </label>
-        <select
-          id="status-filter"
-          value={statusFilter}
-          onChange={(e) => onStatusChange(e.target.value as StatusFilter)}
-          className="w-full sm:w-auto rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-8 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        >
-          {STATUS_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
       </div>
     </div>
   );

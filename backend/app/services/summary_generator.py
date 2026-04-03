@@ -2,7 +2,7 @@ import logging
 import time
 from datetime import datetime
 from typing import Optional, List
-import openai
+from openai import OpenAI, APIError, RateLimitError, APIConnectionError
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ class SummaryGenerator:
     def __init__(self):
         if not settings.OPENAI_API_KEY:
             logger.warning("OPENAI_API_KEY not configured. Summary generation will fail.")
-        openai.api_key = settings.OPENAI_API_KEY
+        self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
     
     def generate_summary(
         self,
@@ -82,7 +82,7 @@ Provide a thoughtful summary that:
             try:
                 logger.info(f"Generating summary (attempt {attempt + 1}/{max_retries})")
                 
-                response = openai.ChatCompletion.create(
+                response = self.client.chat.completions.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "You are a thoughtful assistant helping users reflect on their time capsule messages."},
@@ -96,7 +96,7 @@ Provide a thoughtful summary that:
                 logger.info("Successfully generated summary")
                 return summary
                 
-            except openai.error.APIError as e:
+            except APIError as e:
                 logger.error(f"OpenAI API error during summary generation (attempt {attempt + 1}): {e}")
                 if attempt < max_retries - 1:
                     delay = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
@@ -105,7 +105,7 @@ Provide a thoughtful summary that:
                     logger.error(f"Summary generation failed after {max_retries} attempts")
                     return None
                     
-            except openai.error.RateLimitError as e:
+            except RateLimitError as e:
                 logger.error(f"OpenAI rate limit exceeded (attempt {attempt + 1}): {e}")
                 if attempt < max_retries - 1:
                     delay = 2 ** attempt

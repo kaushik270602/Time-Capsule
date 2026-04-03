@@ -14,11 +14,11 @@ export default function CapsuleList({ capsules }: CapsuleListProps) {
 
   if (capsules.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-        <p className="text-gray-500 mb-4">You haven&apos;t created any capsules yet.</p>
+      <div className="bg-white rounded-xl border border-stone-200 p-12 text-center">
+        <p className="text-stone-500 mb-4">You haven&apos;t created any capsules yet.</p>
         <a
           href="/capsules/new"
-          className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+          className="inline-flex items-center px-4 py-2 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 transition-colors"
         >
           Create Your First Capsule
         </a>
@@ -30,10 +30,10 @@ export default function CapsuleList({ capsules }: CapsuleListProps) {
     <div className="space-y-8">
       {locked.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-stone-900 mb-3 flex items-center gap-2">
             <span aria-hidden="true">🔒</span>
             Locked Capsules
-            <span className="text-sm font-normal text-gray-500">({locked.length})</span>
+            <span className="text-sm font-normal text-stone-500">({locked.length})</span>
           </h2>
           <div className="space-y-3">
             {locked.map((capsule) => (
@@ -45,10 +45,10 @@ export default function CapsuleList({ capsules }: CapsuleListProps) {
 
       {unlocked.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-stone-900 mb-3 flex items-center gap-2">
             <span aria-hidden="true">🔓</span>
             Unlocked Capsules
-            <span className="text-sm font-normal text-gray-500">({unlocked.length})</span>
+            <span className="text-sm font-normal text-stone-500">({unlocked.length})</span>
           </h2>
           <div className="space-y-3">
             {unlocked.map((capsule) => (

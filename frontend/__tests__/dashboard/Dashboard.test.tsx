@@ -95,13 +95,13 @@ describe("DashboardPage", () => {
   });
 
   it("renders dashboard heading", async () => {
-    mockList.mockResolvedValueOnce({ data: [] });
+    mockList.mockResolvedValueOnce({ data: { capsules: [] } });
     render(<DashboardPage />);
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
   });
 
   it("shows empty state when no capsules exist", async () => {
-    mockList.mockResolvedValueOnce({ data: [] });
+    mockList.mockResolvedValueOnce({ data: { capsules: [] } });
     render(<DashboardPage />);
     await waitFor(() => {
       expect(screen.getByText(/haven't created any capsules/i)).toBeInTheDocument();
@@ -111,10 +111,10 @@ describe("DashboardPage", () => {
 
   it("displays capsules and correct stats after loading", async () => {
     const capsules = [
-      { id: 1, title: "My Locked Capsule", status: "locked", unlock_date: "2030-01-01T00:00:00Z", is_public: false, created_at: "2024-01-01", text_content: null, media_urls: [], transcriptions: [], time_until_unlock: 999, user_id: 1 },
-      { id: 2, title: "My Unlocked Capsule", status: "unlocked", unlock_date: "2024-01-01T00:00:00Z", is_public: true, created_at: "2023-01-01", text_content: "hello", media_urls: [], transcriptions: [], time_until_unlock: null, user_id: 1 },
+      { id: 1, title: "My Locked Capsule", status: "locked", unlock_date: "2030-01-01T00:00:00Z", timezone: "UTC", is_public: false, created_at: "2024-01-01", text_content: null, media_urls: [], transcriptions: [], time_until_unlock: 999, user_id: 1 },
+      { id: 2, title: "My Unlocked Capsule", status: "unlocked", unlock_date: "2024-01-01T00:00:00Z", timezone: "UTC", is_public: true, created_at: "2023-01-01", text_content: "hello", media_urls: [], transcriptions: [], time_until_unlock: null, user_id: 1 },
     ];
-    mockList.mockResolvedValueOnce({ data: capsules });
+    mockList.mockResolvedValueOnce({ data: { capsules } });
     render(<DashboardPage />);
 
     await waitFor(() => {
@@ -137,9 +137,9 @@ describe("DashboardPage", () => {
 
 describe("DashboardPage - Filters and Search", () => {
   const capsules = [
-    { id: 1, title: "Summer Memories", status: "locked", unlock_date: "2030-06-15T12:00:00Z", is_public: false, created_at: "2024-01-01", text_content: null, media_urls: [], transcriptions: [], time_until_unlock: 999, user_id: 1 },
-    { id: 2, title: "Winter Notes", status: "unlocked", unlock_date: "2024-01-01T00:00:00Z", is_public: true, created_at: "2023-01-01", text_content: "snowfall in december", media_urls: [], transcriptions: [], time_until_unlock: null, user_id: 1 },
-    { id: 3, title: "Birthday Wish", status: "locked", unlock_date: "2031-03-20T00:00:00Z", is_public: false, created_at: "2024-02-01", text_content: "happy birthday future me", media_urls: [], transcriptions: [], time_until_unlock: 999, user_id: 1 },
+    { id: 1, title: "Summer Memories", status: "locked", unlock_date: "2030-06-15T12:00:00Z", timezone: "UTC", is_public: false, created_at: "2024-01-01", text_content: null, media_urls: [], transcriptions: [], time_until_unlock: 999, user_id: 1 },
+    { id: 2, title: "Winter Notes", status: "unlocked", unlock_date: "2024-01-01T00:00:00Z", timezone: "UTC", is_public: true, created_at: "2023-01-01", text_content: "snowfall in december", media_urls: [], transcriptions: [], time_until_unlock: null, user_id: 1 },
+    { id: 3, title: "Birthday Wish", status: "locked", unlock_date: "2031-03-20T00:00:00Z", timezone: "UTC", is_public: false, created_at: "2024-02-01", text_content: "happy birthday future me", media_urls: [], transcriptions: [], time_until_unlock: 999, user_id: 1 },
   ];
 
   beforeEach(() => {
@@ -147,7 +147,7 @@ describe("DashboardPage - Filters and Search", () => {
   });
 
   it("renders FilterBar after loading", async () => {
-    mockList.mockResolvedValueOnce({ data: capsules });
+    mockList.mockResolvedValueOnce({ data: { capsules } });
     render(<DashboardPage />);
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/search by title or content/i)).toBeInTheDocument();
@@ -156,7 +156,7 @@ describe("DashboardPage - Filters and Search", () => {
   });
 
   it("filters capsules by locked status", async () => {
-    mockList.mockResolvedValueOnce({ data: capsules });
+    mockList.mockResolvedValueOnce({ data: { capsules } });
     render(<DashboardPage />);
     await waitFor(() => {
       expect(screen.getByText("Summer Memories")).toBeInTheDocument();
@@ -170,7 +170,7 @@ describe("DashboardPage - Filters and Search", () => {
   });
 
   it("filters capsules by unlocked status", async () => {
-    mockList.mockResolvedValueOnce({ data: capsules });
+    mockList.mockResolvedValueOnce({ data: { capsules } });
     render(<DashboardPage />);
     await waitFor(() => {
       expect(screen.getByText("Winter Notes")).toBeInTheDocument();
@@ -184,7 +184,7 @@ describe("DashboardPage - Filters and Search", () => {
   });
 
   it("searches capsules by title (case-insensitive)", async () => {
-    mockList.mockResolvedValueOnce({ data: capsules });
+    mockList.mockResolvedValueOnce({ data: { capsules } });
     render(<DashboardPage />);
     await waitFor(() => {
       expect(screen.getByText("Summer Memories")).toBeInTheDocument();
@@ -200,7 +200,7 @@ describe("DashboardPage - Filters and Search", () => {
   });
 
   it("searches capsules by text_content (case-insensitive)", async () => {
-    mockList.mockResolvedValueOnce({ data: capsules });
+    mockList.mockResolvedValueOnce({ data: { capsules } });
     render(<DashboardPage />);
     await waitFor(() => {
       expect(screen.getByText("Winter Notes")).toBeInTheDocument();
@@ -215,7 +215,7 @@ describe("DashboardPage - Filters and Search", () => {
   });
 
   it("combines status filter and search", async () => {
-    mockList.mockResolvedValueOnce({ data: capsules });
+    mockList.mockResolvedValueOnce({ data: { capsules } });
     render(<DashboardPage />);
     await waitFor(() => {
       expect(screen.getByText("Summer Memories")).toBeInTheDocument();
@@ -232,7 +232,7 @@ describe("DashboardPage - Filters and Search", () => {
   });
 
   it("shows all capsules when filter is reset to all", async () => {
-    mockList.mockResolvedValueOnce({ data: capsules });
+    mockList.mockResolvedValueOnce({ data: { capsules } });
     render(<DashboardPage />);
     await waitFor(() => {
       expect(screen.getByText("Summer Memories")).toBeInTheDocument();

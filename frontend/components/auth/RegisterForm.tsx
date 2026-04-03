@@ -52,12 +52,12 @@ export default function RegisterForm() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Check your email</h2>
-        <p className="text-gray-600 mb-4">
+        <h2 className="text-xl font-semibold text-stone-900 mb-2">Check your email</h2>
+        <p className="text-stone-600 mb-4">
           We sent a verification link to <span className="font-medium">{email}</span>.
           Please verify your email to continue.
         </p>
-        <Link href="/login" className="text-indigo-600 hover:text-indigo-500 font-medium">
+        <Link href="/login" className="text-amber-600 hover:text-amber-500 font-medium">
           Go to login
         </Link>
       </div>
@@ -66,7 +66,7 @@ export default function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-      <h2 className="text-2xl font-bold text-gray-900 text-center">Create your account</h2>
+      <h2 className="text-2xl font-bold text-stone-900 text-center">Create your account</h2>
       {errors.form && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">
           {errors.form}
@@ -105,13 +105,13 @@ export default function RegisterForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full py-2 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full py-2 px-4 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {submitting ? "Creating account..." : "Create account"}
       </button>
-      <p className="text-center text-sm text-gray-600">
+      <p className="text-center text-sm text-stone-600">
         Already have an account?{" "}
-        <Link href="/login" className="text-indigo-600 hover:text-indigo-500 font-medium">
+        <Link href="/login" className="text-amber-600 hover:text-amber-500 font-medium">
           Sign in
         </Link>
       </p>

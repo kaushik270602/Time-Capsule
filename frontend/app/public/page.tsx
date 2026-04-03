@@ -3,16 +3,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { capsuleApi, PublicCapsuleResponse } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatUnlockDate } from "@/lib/timezone";
 
 const PAGE_SIZE = 20;
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 function truncate(text: string, maxLen = 140): string {
   if (text.length <= maxLen) return text;
@@ -20,6 +14,7 @@ function truncate(text: string, maxLen = 140): string {
 }
 
 export default function PublicFeedPage() {
+  const { user } = useAuth();
   const [capsules, setCapsules] = useState<PublicCapsuleResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -61,15 +56,23 @@ export default function PublicFeedPage() {
             TimeLock
           </Link>
           <nav className="flex items-center gap-4 text-sm">
-            <Link href="/login" className="text-gray-600 hover:text-gray-900">
-              Sign In
-            </Link>
-            <Link
-              href="/register"
-              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-700"
-            >
-              Sign Up
-            </Link>
+            {user ? (
+              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="text-gray-600 hover:text-gray-900">
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  className="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-700"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -131,7 +134,7 @@ export default function PublicFeedPage() {
                       {c.title}
                     </h2>
                     <p className="text-xs text-gray-500 mt-1">
-                      by User #{c.user_id} · Unlocked {formatDate(c.unlock_date)}
+                      by User #{c.user_id} · Unlocked {formatUnlockDate(c.unlock_date, c.timezone || 'UTC')}
                     </p>
                   </div>
                   <span className="flex-shrink-0 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">

@@ -402,11 +402,19 @@ class TestUnlockWorkflow:
         )
 
         with patch("app.services.ai_service.SummaryGenerator") as MockSummary, \
-             patch("app.services.ai_service.TranscriptionService") as MockTranscription:
+             patch("app.services.ai_service.TranscriptionService") as MockTranscription, \
+             patch("app.services.ai_service.SentimentDetector") as MockSentiment, \
+             patch("app.services.ai_service.VisionAnalyzer") as MockVision, \
+             patch("app.services.ai_service.RecapGenerator") as MockRecap:
             MockSummary.return_value.generate_summary.return_value = (
                 "A heartfelt message created 1 hour ago."
             )
             MockTranscription.return_value.transcribe_media.return_value = None
+            MockSentiment.return_value.detect_sentiment.return_value = {
+                "label": "nostalgic", "confidence": 0.85, "tone_description": "A reflective tone"
+            }
+            MockVision.return_value.analyze_images.return_value = []
+            MockRecap.return_value.generate_recap.return_value = "A beautiful recap of your memory."
 
             ai_svc = AIService()
             analysis = ai_svc.analyze_capsule(capsule.id, db_session)
@@ -414,6 +422,7 @@ class TestUnlockWorkflow:
         assert analysis is not None
         assert analysis.capsule_id == capsule.id
         assert "heartfelt" in analysis.summary
+        assert analysis.processing_status == "completed"
 
         # Verify persisted in DB
         stored = db_session.query(AIAnalysis).filter(

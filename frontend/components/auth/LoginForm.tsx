@@ -38,7 +38,7 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-      <h2 className="text-2xl font-bold text-gray-900 text-center">Sign in to TimeLock</h2>
+      <h2 className="text-2xl font-bold text-stone-900 text-center">Sign in to TimeLock</h2>
       {errors.form && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">
           {errors.form}
@@ -65,20 +65,20 @@ export default function LoginForm() {
         required
       />
       <div className="flex justify-end">
-        <Link href="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-500">
+        <Link href="/forgot-password" className="text-sm text-amber-600 hover:text-amber-500">
           Forgot password?
         </Link>
       </div>
       <button
         type="submit"
         disabled={submitting}
-        className="w-full py-2 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full py-2 px-4 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {submitting ? "Signing in..." : "Sign in"}
       </button>
-      <p className="text-center text-sm text-gray-600">
+      <p className="text-center text-sm text-stone-600">
         Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-indigo-600 hover:text-indigo-500 font-medium">
+        <Link href="/register" className="text-amber-600 hover:text-amber-500 font-medium">
           Create one
         </Link>
       </p>

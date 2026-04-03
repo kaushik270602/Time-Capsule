@@ -10,6 +10,10 @@ jest.mock("next/link", () => {
   );
 });
 
+jest.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({ user: null, loading: false }),
+}));
+
 const mockPublicFeed = jest.fn();
 jest.mock("@/lib/api", () => ({
   capsuleApi: { publicFeed: (...args: unknown[]) => mockPublicFeed(...args) },
@@ -23,6 +27,7 @@ function makeCapsule(overrides: Partial<Record<string, unknown>> = {}) {
     title: "Public Capsule",
     text_content: "Hello from the past!",
     unlock_date: "2024-06-15T12:00:00Z",
+    timezone: "UTC",
     created_at: "2024-01-01T00:00:00Z",
     user_id: 42,
     ...overrides,

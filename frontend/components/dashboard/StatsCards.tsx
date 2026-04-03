@@ -11,8 +11,8 @@ interface StatsCardsProps {
 
 export default function StatsCards({ total, locked, unlocked, loading }: StatsCardsProps) {
   const cards = [
-    { label: "Total Capsules", value: total, color: "bg-indigo-50 text-indigo-700", icon: "📦" },
-    { label: "Locked", value: locked, color: "bg-amber-50 text-amber-700", icon: "🔒" },
+    { label: "Total Capsules", value: total, color: "bg-amber-50 text-amber-700", icon: "📦" },
+    { label: "Locked", value: locked, color: "bg-orange-50 text-orange-700", icon: "🔒" },
     { label: "Unlocked", value: unlocked, color: "bg-emerald-50 text-emerald-700", icon: "🔓" },
   ];
 
@@ -21,7 +21,7 @@ export default function StatsCards({ total, locked, unlocked, loading }: StatsCa
       {cards.map((card) => (
         <div
           key={card.label}
-          className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
+          className="bg-white rounded-xl border border-stone-200 p-6 shadow-sm"
         >
           <div className="flex items-center gap-3 mb-2">
             <span
@@ -30,11 +30,11 @@ export default function StatsCards({ total, locked, unlocked, loading }: StatsCa
             >
               {card.icon}
             </span>
-            <span className="text-sm font-medium text-gray-500">{card.label}</span>
+            <span className="text-sm font-medium text-stone-600">{card.label}</span>
           </div>
-          <div className="text-3xl font-bold text-gray-900">
+          <div className="text-3xl font-bold text-stone-900">
             {loading ? (
-              <span className="inline-block w-12 h-8 bg-gray-200 rounded animate-pulse" />
+              <span className="inline-block w-12 h-8 bg-stone-200 rounded animate-pulse" />
             ) : (
               card.value
             )}

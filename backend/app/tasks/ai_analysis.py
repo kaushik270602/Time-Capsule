@@ -53,6 +53,7 @@ def analyze_capsule_task(self, capsule_id: int) -> dict:
                 "capsule_id": capsule_id,
                 "analysis_id": ai_analysis.id,
                 "has_summary": ai_analysis.summary is not None,
+                "processing_status": ai_analysis.processing_status,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         else:
@@ -61,6 +62,7 @@ def analyze_capsule_task(self, capsule_id: int) -> dict:
             return {
                 "status": "failed",
                 "capsule_id": capsule_id,
+                "processing_status": "failed",
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         
@@ -76,6 +78,7 @@ def analyze_capsule_task(self, capsule_id: int) -> dict:
             return {
                 "status": "error",
                 "capsule_id": capsule_id,
+                "processing_status": "failed",
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }

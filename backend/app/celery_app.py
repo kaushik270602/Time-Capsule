@@ -13,7 +13,7 @@ celery_app = Celery(
     "timelock",
     broker=settings.REDIS_URL,
     backend=settings.REDIS_URL,
-    include=["app.tasks.unlock_scheduler"]
+    include=["app.tasks.unlock_scheduler", "app.tasks.ai_analysis", "app.tasks.notifications"]
 )
 
 # Celery configuration
@@ -47,12 +47,12 @@ celery_app.conf.update(
         },
     },
     
-    # Task routing
-    task_routes={
-        "app.tasks.unlock_scheduler.*": {"queue": "unlock"},
-        "app.tasks.notifications.*": {"queue": "notifications"},
-        "app.tasks.ai_analysis.*": {"queue": "ai"},
-    },
+    # Task routing (disabled for single-worker setup)
+    # task_routes={
+    #     "app.tasks.unlock_scheduler.*": {"queue": "unlock"},
+    #     "app.tasks.notifications.*": {"queue": "notifications"},
+    #     "app.tasks.ai_analysis.*": {"queue": "ai"},
+    # },
     
     # Retry policy for tasks
     task_default_retry_delay=60,  # Wait 60 seconds before retry

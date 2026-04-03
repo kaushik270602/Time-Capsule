@@ -14,6 +14,7 @@ class Capsule(Base):
     media_urls = Column(JSON, default=list, nullable=False)
     transcriptions = Column(JSON, default=list, nullable=False)
     unlock_date = Column(DateTime(timezone=True), nullable=False, index=True)
+    timezone = Column(String(64), nullable=False, default="UTC")
     status = Column(String(20), nullable=False, default="locked", index=True)
     is_public = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -24,6 +25,7 @@ class Capsule(Base):
         CheckConstraint("status IN ('locked', 'unlocked')", name="check_status"),
         CheckConstraint("unlock_date > created_at", name="check_future_unlock_date"),
         Index("idx_capsules_public_unlocked", "is_public", "status", "unlock_date"),
+        Index("idx_capsules_timezone", "timezone"),
     )
 
     # Relationships

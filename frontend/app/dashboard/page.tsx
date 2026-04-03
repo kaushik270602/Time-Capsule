@@ -42,7 +42,7 @@ export default function DashboardPage() {
     const fetchCapsules = async () => {
       try {
         const { data } = await capsuleApi.list();
-        setCapsules(data);
+        setCapsules(data.capsules);
       } catch {
         setError("Failed to load capsules.");
       } finally {
@@ -64,8 +64,8 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-stone-900">Dashboard</h1>
+        <p className="mt-1 text-sm text-stone-500">
           Overview of your time capsules
         </p>
       </div>

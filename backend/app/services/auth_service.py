@@ -83,7 +83,14 @@ class AuthService:
         self.db.commit()
         self.db.refresh(user)
         
-        # TODO: Send verification email
+        # Auto-verify in debug mode (no SMTP configured)
+        from app.config import settings
+        if settings.DEBUG:
+            user.is_verified = True
+            self.db.commit()
+            self.db.refresh(user)
+        
+        # TODO: Send verification email in production
         
         return user
     

@@ -34,6 +34,18 @@ def get_db_session():
         engine.dispose()
 
 
+# Helper to patch all AI sub-services on the AIService module
+def patch_all_ai_services():
+    """Returns a combined context manager that patches all 5 AI sub-services."""
+    return (
+        patch('app.services.ai_service.TranscriptionService'),
+        patch('app.services.ai_service.SummaryGenerator'),
+        patch('app.services.ai_service.SentimentDetector'),
+        patch('app.services.ai_service.VisionAnalyzer'),
+        patch('app.services.ai_service.RecapGenerator'),
+    )
+
+
 # Helper strategies
 def valid_title_strategy():
     """Generate valid capsule titles"""
@@ -72,14 +84,13 @@ def past_datetime_strategy():
 def test_property_36_ai_summary_generated_on_unlock(user_id, title, text_content, days_ago):
     """
     Property 36: AI summary is generated on unlock
-    
+
     For any capsule that unlocks, the system should generate an AI summary
     and store it in the AI_Analysis table linked to the capsule.
-    
+
     Validates: Requirements 10.1, 10.4
     """
     with get_db_session() as db_session:
-        # Create a user
         user = User(
             email=f"user{user_id}@example.com",
             password_hash="hashed_password",
@@ -87,11 +98,10 @@ def test_property_36_ai_summary_generated_on_unlock(user_id, title, text_content
         )
         db_session.add(user)
         db_session.commit()
-        
-        # Create an unlocked capsule
+
         created_at = datetime.now(timezone.utc) - timedelta(days=days_ago)
         unlock_date = datetime.now(timezone.utc) - timedelta(hours=1)
-        
+
         capsule = Capsule(
             user_id=user.id,
             title=title,
@@ -106,39 +116,30 @@ def test_property_36_ai_summary_generated_on_unlock(user_id, title, text_content
         db_session.add(capsule)
         db_session.commit()
         db_session.refresh(capsule)
-        
-        # Mock the AI services to avoid actual API calls
-        with patch('app.services.ai_service.TranscriptionService') as mock_trans_service, \
-             patch('app.services.ai_service.SummaryGenerator') as mock_summary_gen:
-            
-            mock_trans_instance = Mock()
-            mock_trans_service.return_value = mock_trans_instance
-            
-            mock_summary_instance = Mock()
-            mock_summary_instance.generate_summary.return_value = f"Summary of: {text_content[:50]}..."
-            mock_summary_gen.return_value = mock_summary_instance
-            
-            # Create AI service and analyze capsule
+
+        p1, p2, p3, p4, p5 = patch_all_ai_services()
+        with p1 as mock_ts, p2 as mock_sg, p3 as mock_sd, p4 as mock_va, p5 as mock_rg:
+            mock_ts.return_value = Mock()
+            mock_sg_inst = Mock()
+            mock_sg_inst.generate_summary.return_value = f"Summary of: {text_content[:50]}..."
+            mock_sg.return_value = mock_sg_inst
+            mock_sd.return_value = Mock(detect_sentiment=Mock(return_value={"label": "neutral", "confidence": 0.0, "tone_description": ""}))
+            mock_va.return_value = Mock(analyze_images=Mock(return_value=[]))
+            mock_rg.return_value = Mock(generate_recap=Mock(return_value=None))
+
             ai_service = AIService()
             ai_analysis = ai_service.analyze_capsule(capsule.id, db_session)
-            
-            # Verify AI analysis was created
+
             assert ai_analysis is not None, "AI analysis should be created"
-            assert ai_analysis.capsule_id == capsule.id, \
-                "AI analysis should be linked to the capsule"
-            assert ai_analysis.summary is not None, \
-                "AI analysis should contain a summary"
-            assert len(ai_analysis.summary) > 0, \
-                "Summary should not be empty"
-            
-            # Verify AI analysis is stored in database
+            assert ai_analysis.capsule_id == capsule.id
+            assert ai_analysis.summary is not None
+            assert len(ai_analysis.summary) > 0
+
             stored_analysis = db_session.query(AIAnalysis).filter(
                 AIAnalysis.capsule_id == capsule.id
             ).first()
-            assert stored_analysis is not None, \
-                "AI analysis should be stored in database"
-            assert stored_analysis.id == ai_analysis.id, \
-                "Stored analysis should match returned analysis"
+            assert stored_analysis is not None
+            assert stored_analysis.id == ai_analysis.id
 
 
 # Property 37: AI summaries include temporal context
@@ -152,14 +153,10 @@ def test_property_36_ai_summary_generated_on_unlock(user_id, title, text_content
 def test_property_37_ai_summaries_include_temporal_context(user_id, title, text_content, days_ago):
     """
     Property 37: AI summaries include temporal context
-    
-    For any AI summary generated, the summary should reference the time elapsed
-    between capsule creation and unlock.
-    
+
     Validates: Requirements 10.2
     """
     with get_db_session() as db_session:
-        # Create a user
         user = User(
             email=f"user{user_id}@example.com",
             password_hash="hashed_password",
@@ -167,11 +164,10 @@ def test_property_37_ai_summaries_include_temporal_context(user_id, title, text_
         )
         db_session.add(user)
         db_session.commit()
-        
-        # Create an unlocked capsule with specific creation date
+
         created_at = datetime.now(timezone.utc) - timedelta(days=days_ago)
         unlock_date = datetime.now(timezone.utc) - timedelta(hours=1)
-        
+
         capsule = Capsule(
             user_id=user.id,
             title=title,
@@ -186,53 +182,39 @@ def test_property_37_ai_summaries_include_temporal_context(user_id, title, text_
         db_session.add(capsule)
         db_session.commit()
         db_session.refresh(capsule)
-        
-        # Mock the summary generator to capture the call
-        with patch('app.services.ai_service.TranscriptionService') as mock_trans_service, \
-             patch('app.services.ai_service.SummaryGenerator') as mock_summary_gen:
-            
-            mock_trans_instance = Mock()
-            mock_trans_service.return_value = mock_trans_instance
-            
-            mock_summary_instance = Mock()
-            
-            # Capture the arguments passed to generate_summary
+
+        p1, p2, p3, p4, p5 = patch_all_ai_services()
+        with p1 as mock_ts, p2 as mock_sg, p3 as mock_sd, p4 as mock_va, p5 as mock_rg:
+            mock_ts.return_value = Mock()
+
+            mock_sg_inst = Mock()
             captured_args = {}
             def capture_and_return(*args, **kwargs):
                 captured_args.update(kwargs)
                 return f"Summary with temporal context: {days_ago} days"
-            
-            mock_summary_instance.generate_summary.side_effect = capture_and_return
-            mock_summary_gen.return_value = mock_summary_instance
-            
-            # Create AI service and analyze capsule
+            mock_sg_inst.generate_summary.side_effect = capture_and_return
+            mock_sg.return_value = mock_sg_inst
+
+            mock_sd.return_value = Mock(detect_sentiment=Mock(return_value={"label": "neutral", "confidence": 0.0, "tone_description": ""}))
+            mock_va.return_value = Mock(analyze_images=Mock(return_value=[]))
+            mock_rg.return_value = Mock(generate_recap=Mock(return_value=None))
+
             ai_service = AIService()
-            ai_analysis = ai_service.analyze_capsule(capsule.id, db_session)
-            
-            # Verify generate_summary was called with temporal context
-            assert 'created_at' in captured_args, \
-                "generate_summary should receive created_at timestamp"
-            assert 'unlocked_at' in captured_args, \
-                "generate_summary should receive unlocked_at timestamp"
-            
-            # Verify the timestamps are different (time has elapsed)
+            ai_service.analyze_capsule(capsule.id, db_session)
+
+            assert 'created_at' in captured_args
+            assert 'unlocked_at' in captured_args
+
             created = captured_args['created_at']
             unlocked = captured_args['unlocked_at']
-            
-            # Ensure both are timezone-aware for comparison
             if created.tzinfo is None:
                 created = created.replace(tzinfo=timezone.utc)
             if unlocked.tzinfo is None:
                 unlocked = unlocked.replace(tzinfo=timezone.utc)
-            
-            assert unlocked > created, \
-                "Unlock time should be after creation time"
-            
-            # Verify the time difference is approximately correct
+
+            assert unlocked > created
             time_diff = (unlocked - created).days
-            # Allow some tolerance for test execution time
-            assert abs(time_diff - days_ago) <= 1, \
-                f"Time difference should be approximately {days_ago} days"
+            assert abs(time_diff - days_ago) <= 1
 
 
 # Property 38: AI summaries include transcriptions
@@ -246,18 +228,13 @@ def test_property_37_ai_summaries_include_temporal_context(user_id, title, text_
 def test_property_38_ai_summaries_include_transcriptions(user_id, title, text_content, transcriptions):
     """
     Property 38: AI summaries include transcriptions
-    
-    For any capsule with transcribed audio or video content, the transcription
-    text should be included in the AI summary generation.
-    
+
     Validates: Requirements 10.3
     """
-    # Skip if no transcriptions
     if not transcriptions:
         return
-    
+
     with get_db_session() as db_session:
-        # Create a user
         user = User(
             email=f"user{user_id}@example.com",
             password_hash="hashed_password",
@@ -265,11 +242,10 @@ def test_property_38_ai_summaries_include_transcriptions(user_id, title, text_co
         )
         db_session.add(user)
         db_session.commit()
-        
-        # Create an unlocked capsule with transcriptions
+
         created_at = datetime.now(timezone.utc) - timedelta(days=30)
         unlock_date = datetime.now(timezone.utc) - timedelta(hours=1)
-        
+
         capsule = Capsule(
             user_id=user.id,
             title=title,
@@ -284,43 +260,32 @@ def test_property_38_ai_summaries_include_transcriptions(user_id, title, text_co
         db_session.add(capsule)
         db_session.commit()
         db_session.refresh(capsule)
-        
-        # Mock the summary generator to capture the call
-        with patch('app.services.ai_service.TranscriptionService') as mock_trans_service, \
-             patch('app.services.ai_service.SummaryGenerator') as mock_summary_gen:
-            
-            mock_trans_instance = Mock()
-            mock_trans_service.return_value = mock_trans_instance
-            
-            mock_summary_instance = Mock()
-            
-            # Capture the arguments passed to generate_summary
+
+        p1, p2, p3, p4, p5 = patch_all_ai_services()
+        with p1 as mock_ts, p2 as mock_sg, p3 as mock_sd, p4 as mock_va, p5 as mock_rg:
+            mock_ts.return_value = Mock()
+
+            mock_sg_inst = Mock()
             captured_args = {}
             def capture_and_return(*args, **kwargs):
                 captured_args.update(kwargs)
                 return "Summary including transcriptions"
-            
-            mock_summary_instance.generate_summary.side_effect = capture_and_return
-            mock_summary_gen.return_value = mock_summary_instance
-            
-            # Create AI service and analyze capsule
+            mock_sg_inst.generate_summary.side_effect = capture_and_return
+            mock_sg.return_value = mock_sg_inst
+
+            mock_sd.return_value = Mock(detect_sentiment=Mock(return_value={"label": "neutral", "confidence": 0.0, "tone_description": ""}))
+            mock_va.return_value = Mock(analyze_images=Mock(return_value=[]))
+            mock_rg.return_value = Mock(generate_recap=Mock(return_value=None))
+
             ai_service = AIService()
-            ai_analysis = ai_service.analyze_capsule(capsule.id, db_session)
-            
-            # Verify generate_summary was called with transcriptions
-            assert 'transcriptions' in captured_args, \
-                "generate_summary should receive transcriptions"
-            
+            ai_service.analyze_capsule(capsule.id, db_session)
+
+            assert 'transcriptions' in captured_args
             received_transcriptions = captured_args['transcriptions']
-            assert isinstance(received_transcriptions, list), \
-                "Transcriptions should be passed as a list"
-            assert len(received_transcriptions) == len(transcriptions), \
-                f"Should receive all {len(transcriptions)} transcriptions"
-            
-            # Verify the transcriptions match
-            for i, transcription in enumerate(transcriptions):
-                assert transcription in received_transcriptions, \
-                    f"Transcription {i} should be included"
+            assert isinstance(received_transcriptions, list)
+            assert len(received_transcriptions) == len(transcriptions)
+            for t in transcriptions:
+                assert t in received_transcriptions
 
 
 # Property 39: AI summary failures are graceful
@@ -333,14 +298,10 @@ def test_property_38_ai_summaries_include_transcriptions(user_id, title, text_co
 def test_property_39_ai_summary_failures_are_graceful(user_id, title, text_content):
     """
     Property 39: AI summary failures are graceful
-    
-    For any AI summary generation that fails, the system should log the error
-    and still allow capsule access without the summary.
-    
+
     Validates: Requirements 10.5
     """
     with get_db_session() as db_session:
-        # Create a user
         user = User(
             email=f"user{user_id}@example.com",
             password_hash="hashed_password",
@@ -348,11 +309,10 @@ def test_property_39_ai_summary_failures_are_graceful(user_id, title, text_conte
         )
         db_session.add(user)
         db_session.commit()
-        
-        # Create an unlocked capsule
+
         created_at = datetime.now(timezone.utc) - timedelta(days=30)
         unlock_date = datetime.now(timezone.utc) - timedelta(hours=1)
-        
+
         capsule = Capsule(
             user_id=user.id,
             title=title,
@@ -367,51 +327,38 @@ def test_property_39_ai_summary_failures_are_graceful(user_id, title, text_conte
         db_session.add(capsule)
         db_session.commit()
         db_session.refresh(capsule)
-        
-        # Mock the summary generator to simulate failure
-        with patch('app.services.ai_service.TranscriptionService') as mock_trans_service, \
-             patch('app.services.ai_service.SummaryGenerator') as mock_summary_gen:
-            
-            mock_trans_instance = Mock()
-            mock_trans_service.return_value = mock_trans_instance
-            
-            mock_summary_instance = Mock()
-            # Simulate API failure by returning None
-            mock_summary_instance.generate_summary.return_value = None
-            mock_summary_gen.return_value = mock_summary_instance
-            
-            # Create AI service and analyze capsule
+
+        p1, p2, p3, p4, p5 = patch_all_ai_services()
+        with p1 as mock_ts, p2 as mock_sg, p3 as mock_sd, p4 as mock_va, p5 as mock_rg:
+            mock_ts.return_value = Mock()
+            mock_sg_inst = Mock()
+            mock_sg_inst.generate_summary.return_value = None
+            mock_sg.return_value = mock_sg_inst
+            mock_sd.return_value = Mock(detect_sentiment=Mock(return_value={"label": "neutral", "confidence": 0.0, "tone_description": ""}))
+            mock_va.return_value = Mock(analyze_images=Mock(return_value=[]))
+            mock_rg.return_value = Mock(generate_recap=Mock(return_value=None))
+
             ai_service = AIService()
             ai_analysis = ai_service.analyze_capsule(capsule.id, db_session)
-            
-            # Verify AI analysis is still created even with failure
-            assert ai_analysis is not None, \
-                "AI analysis should be created even when summary generation fails"
-            assert ai_analysis.capsule_id == capsule.id, \
-                "AI analysis should be linked to the capsule"
-            
-            # Verify summary is None (indicating failure)
-            assert ai_analysis.summary is None, \
-                "Summary should be None when generation fails"
-            
-            # Verify AI analysis is stored in database
+
+            # With error isolation, analysis still completes even when summary fails
+            assert ai_analysis is not None
+            assert ai_analysis.capsule_id == capsule.id
+            assert ai_analysis.summary is None
+            assert ai_analysis.processing_status == "completed"
+
             stored_analysis = db_session.query(AIAnalysis).filter(
                 AIAnalysis.capsule_id == capsule.id
             ).first()
-            assert stored_analysis is not None, \
-                "AI analysis should be stored even with failed summary"
-            assert stored_analysis.summary is None, \
-                "Stored summary should be None when generation fails"
-        
-        # Verify capsule is still accessible (not affected by AI failure)
+            assert stored_analysis is not None
+            assert stored_analysis.summary is None
+
         db_session.refresh(capsule)
-        assert capsule.status == "unlocked", \
-            "Capsule should remain unlocked despite AI failure"
-        assert capsule.text_content == text_content, \
-            "Capsule content should be accessible despite AI failure"
+        assert capsule.status == "unlocked"
+        assert capsule.text_content == text_content
 
 
-# Property 39 (Extended): AI service handles exceptions gracefully
+# Property 39 (Extended): AI service handles exceptions gracefully with error isolation
 @settings(max_examples=15, deadline=None)
 @given(
     user_id=st.integers(min_value=1, max_value=1000000),
@@ -421,15 +368,13 @@ def test_property_39_ai_summary_failures_are_graceful(user_id, title, text_conte
 def test_property_39_ai_service_handles_exceptions_gracefully(user_id, title, text_content):
     """
     Property 39 (Extended): AI service handles exceptions gracefully
-    
-    For any exception that occurs during AI analysis (API errors, network errors,
-    etc.), the system should catch the exception, log it, and return None without
-    crashing, allowing the capsule to remain accessible.
-    
+
+    With error isolation, individual step failures don't crash the pipeline.
+    The analysis still completes with partial results.
+
     Validates: Requirements 10.5
     """
     with get_db_session() as db_session:
-        # Create a user
         user = User(
             email=f"user{user_id}@example.com",
             password_hash="hashed_password",
@@ -437,11 +382,10 @@ def test_property_39_ai_service_handles_exceptions_gracefully(user_id, title, te
         )
         db_session.add(user)
         db_session.commit()
-        
-        # Create an unlocked capsule
+
         created_at = datetime.now(timezone.utc) - timedelta(days=30)
         unlock_date = datetime.now(timezone.utc) - timedelta(hours=1)
-        
+
         capsule = Capsule(
             user_id=user.id,
             title=title,
@@ -456,35 +400,29 @@ def test_property_39_ai_service_handles_exceptions_gracefully(user_id, title, te
         db_session.add(capsule)
         db_session.commit()
         db_session.refresh(capsule)
-        
-        # Mock the summary generator to raise an exception
-        with patch('app.services.ai_service.TranscriptionService') as mock_trans_service, \
-             patch('app.services.ai_service.SummaryGenerator') as mock_summary_gen:
-            
-            mock_trans_instance = Mock()
-            mock_trans_service.return_value = mock_trans_instance
-            
-            mock_summary_instance = Mock()
-            # Simulate API exception
-            mock_summary_instance.generate_summary.side_effect = Exception("API Error")
-            mock_summary_gen.return_value = mock_summary_instance
-            
-            # Create AI service and analyze capsule
+
+        p1, p2, p3, p4, p5 = patch_all_ai_services()
+        with p1 as mock_ts, p2 as mock_sg, p3 as mock_sd, p4 as mock_va, p5 as mock_rg:
+            mock_ts.return_value = Mock()
+            # Summary generation raises an exception — error isolation catches it
+            mock_sg_inst = Mock()
+            mock_sg_inst.generate_summary.side_effect = Exception("API Error")
+            mock_sg.return_value = mock_sg_inst
+            mock_sd.return_value = Mock(detect_sentiment=Mock(return_value={"label": "neutral", "confidence": 0.0, "tone_description": ""}))
+            mock_va.return_value = Mock(analyze_images=Mock(return_value=[]))
+            mock_rg.return_value = Mock(generate_recap=Mock(return_value=None))
+
             ai_service = AIService()
-            
-            # Should not raise exception - should handle gracefully
             ai_analysis = ai_service.analyze_capsule(capsule.id, db_session)
-            
-            # Verify AI analysis returns None on exception
-            assert ai_analysis is None, \
-                "AI analysis should return None when exception occurs"
-        
-        # Verify capsule is still accessible
+
+            # Error isolation means the pipeline still completes
+            assert ai_analysis is not None
+            assert ai_analysis.processing_status == "completed"
+            assert ai_analysis.summary is None  # summary step failed
+
         db_session.refresh(capsule)
-        assert capsule.status == "unlocked", \
-            "Capsule should remain unlocked despite AI exception"
-        assert capsule.text_content == text_content, \
-            "Capsule content should be accessible despite AI exception"
+        assert capsule.status == "unlocked"
+        assert capsule.text_content == text_content
 
 
 # Property 36 (Extended): AI analysis only runs on unlocked capsules
@@ -497,14 +435,10 @@ def test_property_39_ai_service_handles_exceptions_gracefully(user_id, title, te
 def test_property_36_ai_analysis_only_on_unlocked_capsules(user_id, title, text_content):
     """
     Property 36 (Extended): AI analysis only runs on unlocked capsules
-    
-    For any capsule that is still locked, attempting to run AI analysis should
-    be rejected or skipped, ensuring analysis only happens after unlock.
-    
+
     Validates: Requirements 10.1
     """
     with get_db_session() as db_session:
-        # Create a user
         user = User(
             email=f"user{user_id}@example.com",
             password_hash="hashed_password",
@@ -512,17 +446,16 @@ def test_property_36_ai_analysis_only_on_unlocked_capsules(user_id, title, text_
         )
         db_session.add(user)
         db_session.commit()
-        
-        # Create a LOCKED capsule (future unlock date)
+
         created_at = datetime.now(timezone.utc) - timedelta(days=1)
         unlock_date = datetime.now(timezone.utc) + timedelta(days=30)
-        
+
         capsule = Capsule(
             user_id=user.id,
             title=title,
             text_content=text_content,
             unlock_date=unlock_date,
-            status="locked",  # Still locked
+            status="locked",
             is_public=False,
             media_urls=[],
             transcriptions=[],
@@ -531,32 +464,24 @@ def test_property_36_ai_analysis_only_on_unlocked_capsules(user_id, title, text_
         db_session.add(capsule)
         db_session.commit()
         db_session.refresh(capsule)
-        
-        # Mock the AI services
-        with patch('app.services.ai_service.TranscriptionService') as mock_trans_service, \
-             patch('app.services.ai_service.SummaryGenerator') as mock_summary_gen:
-            
-            mock_trans_instance = Mock()
-            mock_trans_service.return_value = mock_trans_instance
-            
-            mock_summary_instance = Mock()
-            mock_summary_instance.generate_summary.return_value = "This should not be called"
-            mock_summary_gen.return_value = mock_summary_instance
-            
-            # Create AI service and attempt to analyze locked capsule
+
+        p1, p2, p3, p4, p5 = patch_all_ai_services()
+        with p1 as mock_ts, p2 as mock_sg, p3 as mock_sd, p4 as mock_va, p5 as mock_rg:
+            mock_ts.return_value = Mock()
+            mock_sg_inst = Mock()
+            mock_sg_inst.generate_summary.return_value = "This should not be called"
+            mock_sg.return_value = mock_sg_inst
+            mock_sd.return_value = Mock()
+            mock_va.return_value = Mock()
+            mock_rg.return_value = Mock()
+
             ai_service = AIService()
             ai_analysis = ai_service.analyze_capsule(capsule.id, db_session)
-            
-            # Verify AI analysis was not performed on locked capsule
-            assert ai_analysis is None, \
-                "AI analysis should not be performed on locked capsules"
-            
-            # Verify summary generator was not called
-            mock_summary_instance.generate_summary.assert_not_called()
-            
-            # Verify no AI analysis record was created
+
+            assert ai_analysis is None
+            mock_sg_inst.generate_summary.assert_not_called()
+
             stored_analysis = db_session.query(AIAnalysis).filter(
                 AIAnalysis.capsule_id == capsule.id
             ).first()
-            assert stored_analysis is None, \
-                "No AI analysis should be stored for locked capsules"
+            assert stored_analysis is None
