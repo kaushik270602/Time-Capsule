@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: Optional[str] = None
     SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM: Optional[str] = None  # From address (defaults to SMTP_USER if not set)
     
     class Config:
         env_file = ".env"
