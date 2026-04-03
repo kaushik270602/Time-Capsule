@@ -36,7 +36,7 @@ Copy `.env.example` to `.env` and configure the following:
 | `POSTGRES_PASSWORD` | Yes | PostgreSQL password |
 | `POSTGRES_DB` | Yes | PostgreSQL database name |
 | `JWT_SECRET_KEY` | Yes | Secret key for JWT signing — use a strong random value |
-| `OPENAI_API_KEY` | No | OpenAI API key for AI summaries and transcription |
+| `OPENAI_API_KEY` | No | OpenAI API key for AI summaries, transcription, sentiment detection, image analysis, and memory recaps |
 | `AWS_ACCESS_KEY_ID` | No | AWS credentials for S3 media storage |
 | `AWS_SECRET_ACCESS_KEY` | No | AWS credentials for S3 media storage |
 | `S3_BUCKET_NAME` | No | S3 bucket name for media uploads |
@@ -99,6 +99,27 @@ After deployment, the following services are running:
 | Redis | 6379 | Cache and task queue |
 | Celery Worker | — | Background task processor |
 | Celery Beat | — | Periodic task scheduler (capsule unlock checks) |
+
+## AI Analysis
+
+When a capsule unlocks, the system automatically triggers AI analysis via Celery:
+
+1. Audio/video transcription (Whisper API, 25MB file limit)
+2. Sentiment/tone detection on text content
+3. Image captioning and tagging (GPT-4o Vision)
+4. Text summarization with temporal context
+5. Unified memory recap generation
+
+Each step is error-isolated. If the `OPENAI_API_KEY` is not set, AI analysis is skipped gracefully.
+
+To manually trigger AI analysis on an already-unlocked capsule:
+
+```bash
+curl -X POST http://localhost:8000/api/capsules/{id}/analyze \
+  -H "Cookie: <auth-cookie>"
+```
+
+Or use the "Analyze with AI" button on the capsule detail page.
 
 ## Troubleshooting
 
