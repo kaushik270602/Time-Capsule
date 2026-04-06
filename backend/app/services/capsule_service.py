@@ -37,15 +37,16 @@ class CapsuleService:
         self.storage = StorageAdapter()
     
     def _sign_media_urls(self, urls: List[str], capsule_id: int = None) -> List[str]:
-        """Convert raw S3 URLs to backend proxy URLs for browser access."""
+        """Convert raw S3 URLs to signed S3 URLs for direct browser access."""
         if not urls:
             return []
         result = []
         for url in urls:
-            if self.storage.use_s3 and ".amazonaws.com/" in url and capsule_id:
+            if self.storage.use_s3 and ".amazonaws.com/" in url:
                 try:
                     key = url.split(".amazonaws.com/", 1)[1]
-                    result.append(f"http://localhost:8000/api/capsules/{capsule_id}/media/{key}")
+                    signed = self.storage.generate_signed_url(key)
+                    result.append(signed)
                 except (IndexError, Exception):
                     result.append(url)
             else:
