@@ -6,8 +6,16 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Cookies are sent automatically via withCredentials: true.
-// No need to manually attach tokens from localStorage.
+// Attach token from localStorage as Authorization header (fallback for cross-origin where cookies don't work)
+api.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
 
 export interface UserResponse {
   id: number;

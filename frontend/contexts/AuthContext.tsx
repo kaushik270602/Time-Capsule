@@ -46,8 +46,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      await authApi.login(email, password);
-      // The httpOnly cookie is set by the server automatically.
+      const { data } = await authApi.login(email, password);
+      // Store token for cross-origin auth (cookies may not work across different domains)
+      if (data.access_token) {
+        localStorage.setItem("access_token", data.access_token);
+      }
       await fetchUser();
     } catch (err: any) {
       const message =
@@ -76,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Best-effort: clear local state even if the server call fails
     }
+    localStorage.removeItem("access_token");
     setState({ user: null, loading: false, error: null });
   };
 
