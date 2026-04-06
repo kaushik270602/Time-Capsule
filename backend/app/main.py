@@ -6,6 +6,8 @@ from app.middleware import RateLimitMiddleware, CSRFMiddleware, SecurityHeadersM
 from app.routers import auth, profile, capsules, notifications
 from app.errors import register_error_handlers
 
+from app.config import settings
+
 app = FastAPI(
     title="TimeLock API",
     description="AI Powered Digital Time Capsule",
@@ -21,14 +23,15 @@ try:
     MEDIA_DIR.mkdir(parents=True, exist_ok=True)
     app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
 except OSError:
-    # In test or local environments where /app is not writable, skip static mount
     pass
 
 # Middleware (outermost first — execution order is bottom-up in Starlette)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CSRFMiddleware)
-app.add_middleware(HTTPSRedirectMiddleware)
+# Only enable HTTPS redirect locally — Railway/production proxies handle SSL
+if settings.DEBUG:
+    app.add_middleware(HTTPSRedirectMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:3001", "https://frontend-production-b78fd.up.railway.app"],
