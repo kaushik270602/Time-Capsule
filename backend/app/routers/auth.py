@@ -64,7 +64,7 @@ def login(body: UserLoginRequest, response: Response, db: Session = Depends(get_
         value=token,
         httponly=True,
         secure=is_production,
-        samesite="lax",
+        samesite="none" if is_production else "lax",
         max_age=settings.JWT_EXPIRATION_HOURS * 3600,
         path="/",
     )
@@ -104,7 +104,7 @@ def logout(response: Response):
         key="access_token",
         httponly=True,
         secure=is_production,
-        samesite="lax",
+        samesite="none" if is_production else "lax",
         path="/",
     )
     return MessageResponse(message="Logged out successfully")
