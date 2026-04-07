@@ -2,17 +2,18 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import FormInput from "@/components/ui/FormInput";
 
 export default function RegisterForm() {
-  const { register } = useAuth();
+  const { register, login } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
@@ -36,33 +37,15 @@ export default function RegisterForm() {
     setSubmitting(true);
     try {
       await register(email, password);
-      setSuccess(true);
+      // Auto-login after registration
+      await login(email, password);
+      router.push("/dashboard");
     } catch (err: any) {
       setErrors({ form: err.message });
     } finally {
       setSubmitting(false);
     }
   };
-
-  if (success) {
-    return (
-      <div className="text-center p-6">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-          <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
-        </div>
-        <h2 className="text-xl font-semibold text-stone-900 mb-2">Check your email</h2>
-        <p className="text-stone-600 mb-4">
-          We sent a verification link to <span className="font-medium">{email}</span>.
-          Please verify your email to continue.
-        </p>
-        <Link href="/login" className="text-amber-600 hover:text-amber-500 font-medium">
-          Go to login
-        </Link>
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
