@@ -88,8 +88,8 @@ class EmailNotifier:
             msg.attach(part1)
             msg.attach(part2)
             
-            # Send email
-            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+            # Send email with timeout
+            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=10) as server:
                 server.starttls()
                 server.login(self.smtp_user, self.smtp_password)
                 server.send_message(msg)
@@ -115,7 +115,7 @@ class EmailNotifier:
             return capsule.unlock_date.strftime("%B %d, %Y at %I:%M %p UTC")
 
     def _create_text_body(self, user: User, capsule: Capsule) -> str:
-        capsule_link = f"https://timelock.app/capsules/{capsule.id}"
+        capsule_link = f"https://frontend-production-b78fd.up.railway.app/capsules/{capsule.id}"
         unlock_date_str = self._format_unlock_date(capsule)
         
         return f"""Hello!
@@ -142,7 +142,7 @@ The TimeLock Team
         Returns:
             HTML email body
         """
-        capsule_link = f"https://timelock.app/capsules/{capsule.id}"
+        capsule_link = f"https://frontend-production-b78fd.up.railway.app/capsules/{capsule.id}"
         unlock_date_str = self._format_unlock_date(capsule)
         
         return f"""<!DOCTYPE html>

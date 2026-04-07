@@ -56,10 +56,10 @@ class NotificationService:
             
             logger.info(f"Starting notification process for capsule {capsule_id}")
             
-            # Send notifications through all channels
+            # Send notifications — in-app first (instant), then email (may be slow)
+            in_app_sent = self._send_in_app_notification(user, capsule)
             email_sent = self._send_email_notification(user, capsule)
             push_sent = self._send_push_notification(user, capsule)
-            in_app_sent = self._send_in_app_notification(user, capsule)
             
             # Log delivery status in unlock_log
             self._log_delivery_status(capsule_id, email_sent, push_sent, in_app_sent)
