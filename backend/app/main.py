@@ -28,9 +28,9 @@ except OSError:
 # Middleware (outermost first — execution order is bottom-up in Starlette)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware(CSRFMiddleware)
-# Only enable HTTPS redirect locally — Railway/production proxies handle SSL
+# Only enable CSRF and HTTPS redirect locally — Railway/production proxies handle these
 if settings.DEBUG:
+    app.add_middleware(CSRFMiddleware)
     app.add_middleware(HTTPSRedirectMiddleware)
 app.add_middleware(
     CORSMiddleware,
